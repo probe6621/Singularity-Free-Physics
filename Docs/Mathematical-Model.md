@@ -36,17 +36,17 @@ v(t + dt)   = v(t + dt/2) + a(t + dt) * dt/2
 
 Accelerations are evaluated before the first kick after bodies are added or parameters change. This avoids the common first-step error of beginning with a zero acceleration field.
 
-## Discrete physical contacts
+## Community Core elastic contacts
 
-Point-force regularization prevents a field singularity but does not itself prevent visual or mechanical overlap. For bodies with radii `R_i` and `R_j`, the CPU solvers run a discrete contact pass after the drift and before the second field evaluation whenever `|r_i-r_j| <= R_i+R_j`.
+Point-force regularization prevents a field singularity but does not itself prevent visual overlap. For bodies with radii `R_i` and `R_j`, the Community Core runs a simple discrete contact pass after the drift and before the second field evaluation whenever `|r_i-r_j| <= R_i+R_j`.
 
 For normal `n` from body `j` to body `i`, an approaching pair (`(v_i-v_j).n < 0`) receives a normal impulse
 
 ```text
-J_n = -(1 + e) * ((v_i - v_j).n) / (1/M_i + 1/M_j)
+J_n = -2 * ((v_i - v_j).n) / (1/M_i + 1/M_j)
 ```
 
-and a Coulomb-limited tangent impulse. The material pairs use geometric-mean restitution and friction. Positional projection is inverse-mass weighted and is performed even for separating overlaps. These impulses conserve total linear momentum but intentionally break strict symplectic energy conservation; collision dissipation is reported to callbacks/contact records.
+and an inverse-mass weighted positional projection. This is a perfectly elastic normal impulse with no friction or collision callback system. It conserves linear momentum and normal relative kinetic energy. Epsilon Physics Pro adds configurable inelastic materials, Coulomb friction, callbacks, and advanced contact controls.
 
 ## Units and tuning
 

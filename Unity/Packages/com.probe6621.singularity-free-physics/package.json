@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "displayName": "Singularity-Free Physics",
   "description": "Double-precision, regularized N-body dynamics using Velocity-Verlet integration.",
-  "unity": "2022.3",
+  "unity": "2021.3",
   "keywords": [
     "physics",
     "n-body",
@@ -13,10 +13,5 @@
   ],
   "author": {
     "name": "probe6621"
-  },
-  "dependencies": {
-    "com.unity.burst": "1.8.4",
-    "com.unity.collections": "1.4.0",
-    "com.unity.mathematics": "1.2.6"
   }
 }

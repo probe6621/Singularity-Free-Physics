@@ -1,11 +1,15 @@
-# Singularity-Free Physics
+# Singularity-Free Physics Community Core
 
-A dual-engine, double-precision N-body starter package for regularized central-force simulations. It provides finite pair interactions at coincident positions and fixed-step Velocity-Verlet integration for Unity and Unreal Engine.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+An open-source, dual-engine Community Core for regularized central-force simulations. It provides finite pair interactions at coincident positions, fixed-step Velocity-Verlet integration, and simple elastic hard-sphere contacts for Unity and Unreal Engine.
+
+> Need Burst/DOTS high-capacity simulation, Unreal Niagara GPU acceleration, inelastic/friction contacts, callbacks, visualizers, or production demos? **Epsilon Physics Pro** is the commercial upgrade. Marketplace links will be published here.
 
 ## Contents
 
-- [`Unity/Packages/com.probe6621.singularity-free-physics`](Unity/Packages/com.probe6621.singularity-free-physics): Unity Package Manager package, including classic MonoBehaviour and Burst/Job System solvers plus EditMode math tests.
-- [`Unreal/EpsilonPhysics`](Unreal/EpsilonPhysics): Unreal Engine runtime module with a double-precision CPU solver plus a Niagara GPU multi-attractor field path.
+- [`Unity/Packages/com.probe6621.singularity-free-physics`](Unity/Packages/com.probe6621.singularity-free-physics): Unity Package Manager package with the classic MonoBehaviour CPU solver and EditMode math tests.
+- [`Unreal/EpsilonPhysics`](Unreal/EpsilonPhysics): Unreal Engine runtime plugin with a double-precision CPU solver.
 - [`Docs/Mathematical-Model.md`](Docs/Mathematical-Model.md): formulation, units, and integration notes.
 
 ## Unity quick start
@@ -27,10 +31,9 @@ Copy `Unreal/EpsilonPhysics` into your project's `Plugins/` directory, enable th
 - The solver intentionally refuses invalid state rather than allowing a NaN to contaminate the simulation.
 - Velocity-Verlet is symplectic for a time-independent conservative potential at a constant step. It bounds long-term energy error; it does **not** guarantee exact energy conservation or stability for every choice of step and parameters.
 - Pair evaluation is O(N^2). Use a Barnes-Hut/FMM approximation, GPU implementation, or spatial partitioning for very large body counts.
-- The optional Burst path uses SIMD-friendly native arrays and multithreaded per-particle reductions. Benchmark on the target hardware; exact 10,000-body all-pairs simulation requires roughly 100 million directed interactions per fixed step.
-- The Niagara GPU path supports up to 64 live attractors for large `N x M` particle effects; it is not an `N x N` self-gravity solver. See the plugin README for the required Niagara parameter and scratch-module setup.
-- The CPU Unity and Unreal solvers optionally augment the field with discrete radius-based impulses for elastic/inelastic contacts. This preserves linear momentum while intentionally allowing collision energy dissipation; see the engine-specific READMEs.
+- The Community Core is intended for small body counts; exact pair evaluation is O(N^2). Profile your target hardware and use a modest body count.
+- The CPU Unity and Unreal solvers optionally augment the field with discrete radius-based perfectly elastic contacts. Epsilon Physics Pro adds high-throughput compute paths and advanced inelastic contacts.
 
 ## Validation
 
-Unity includes EditMode NUnit tests for coincident-body finiteness, the analytical gradient, invalid-parameter rejection, and Burst pair-force direction. The Unreal plugin README includes a focused runtime test-harness recipe for the C++ solver and Niagara bridge.
+Unity includes EditMode NUnit tests for coincident-body finiteness, the analytical gradient, and invalid-parameter rejection. The Unreal plugin README includes a focused runtime test-harness recipe for the C++ solver.

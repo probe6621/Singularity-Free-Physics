@@ -29,8 +29,8 @@ namespace SingularityFreePhysics
         [Min(0.0f)]
         public double timeScale = 1.0;
 
-        [Header("Discrete Contacts")]
-        [Tooltip("Applies rigid-body impulses and positional projection after the Verlet drift.")]
+        [Header("Basic Contacts")]
+        [Tooltip("Applies perfectly elastic hard-sphere contacts after the Verlet drift.")]
         public bool collisionsEnabled = true;
 
         private bool accelerationIsCurrent;
@@ -162,13 +162,13 @@ namespace SingularityFreePhysics
             for (int i = 0; i < Bodies.Count; i++)
             {
                 EpsilonBody body = Bodies[i];
-                valid &= body != null && body.HasValidMass && body.HasValidCollisionProperties &&
+                valid &= body != null && body.HasValidMass && body.HasValidRadius &&
                     body.position.IsFinite() && body.velocity.IsFinite();
             }
 
             if (!valid && !invalidConfigurationReported)
             {
-                Debug.LogError("Epsilon Physics requires finite state, epsilon > 0, beta >= 0, timeScale >= 0, positive body masses, and valid collision properties.", this);
+                Debug.LogError("Epsilon Physics requires finite state, epsilon > 0, beta >= 0, timeScale >= 0, positive body masses, and non-negative radii.", this);
                 invalidConfigurationReported = true;
             }
             else if (valid)
@@ -231,51 +231,15 @@ namespace SingularityFreePhysics
                     first.position += correction * inverseMassFirst;
                     second.position -= correction * inverseMassSecond;
 
-                    Vector3d relativeVelocityBefore = first.velocity - second.velocity;
-                    double normalVelocity = Vector3d.Dot(relativeVelocityBefore, normal);
-                    double normalImpulseMagnitude = 0.0;
-                    double tangentialImpulseMagnitude = 0.0;
+                    Vector3d relativeVelocity = first.velocity - second.velocity;
+                    double normalVelocity = Vector3d.Dot(relativeVelocity, normal);
                     if (normalVelocity < 0.0)
                     {
-                        double restitution = Math.Sqrt(first.restitution * second.restitution);
-                        normalImpulseMagnitude = -(1.0 + restitution) * normalVelocity / inverseMassSum;
-                        Vector3d impulse = normal * normalImpulseMagnitude;
-
-                        Vector3d tangentVelocity = relativeVelocityBefore - normal * normalVelocity;
-                        double tangentSpeedSquared = tangentVelocity.SqrMagnitude();
-                        if (tangentSpeedSquared > 1e-24)
-                        {
-                            double tangentSpeed = Math.Sqrt(tangentSpeedSquared);
-                            double friction = Math.Sqrt(first.friction * second.friction);
-                            tangentialImpulseMagnitude = -Math.Min(
-                                friction * normalImpulseMagnitude,
-                                tangentSpeed / inverseMassSum);
-                            impulse += (tangentVelocity / tangentSpeed) * tangentialImpulseMagnitude;
-                        }
-
+                        double impulseMagnitude = -2.0 * normalVelocity / inverseMassSum;
+                        Vector3d impulse = normal * impulseMagnitude;
                         first.velocity += impulse * inverseMassFirst;
                         second.velocity -= impulse * inverseMassSecond;
                     }
-
-                    Vector3d relativeVelocityAfter = first.velocity - second.velocity;
-                    double reducedMass = 1.0 / inverseMassSum;
-                    double energyDissipated = Math.Max(
-                        0.0,
-                        0.5 * reducedMass * (relativeVelocityBefore.SqrMagnitude() - relativeVelocityAfter.SqrMagnitude()));
-                    EpsilonContactData contact = new EpsilonContactData
-                    {
-                        BodyA = first,
-                        BodyB = second,
-                        ContactPoint = second.position + normal * second.radius,
-                        Normal = normal,
-                        PenetrationDepth = penetration,
-                        RelativeNormalVelocity = normalVelocity,
-                        NormalImpulse = normalImpulseMagnitude,
-                        TangentialImpulse = tangentialImpulseMagnitude,
-                        EnergyDissipated = energyDissipated
-                    };
-                    first.NotifyCollision(in contact);
-                    second.NotifyCollision(in contact);
                 }
             }
         }
