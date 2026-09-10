@@ -11,7 +11,15 @@ public class EpsilonPhysics : ModuleRules
 			{
 				"Core",
 				"CoreUObject",
-				"Engine"
+				"Engine",
+				"Niagara"
+			});
+
+		PrivateDependencyModuleNames.AddRange(
+			new[]
+			{
+				"Projects",
+				"RenderCore"
 			});
 	}
 }

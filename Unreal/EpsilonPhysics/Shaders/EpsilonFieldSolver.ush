@@ -1,0 +1,66 @@
+// Epsilon Framework Niagara GPU multi-attractor field.
+// Include as /Plugin/EpsilonPhysics/EpsilonFieldSolver.ush after enabling the plugin.
+#pragma once
+
+float3 EvaluateEpsilonAcceleration_GPU(
+	in float3 ParticlePosition,
+	in float ParticleMass,
+	in float AlphaEff,
+	in float EpsilonFloor,
+	in float BetaTension,
+	in int NumAttractors,
+	in StructuredBuffer<float4> AttractorsBuffer)
+{
+	const float EpsilonSquared = max(EpsilonFloor * EpsilonFloor, 1.0e-6f);
+	const float SanitizedParticleMass = max(ParticleMass, 1.0e-6f);
+	const float InverseParticleMass = rcp(SanitizedParticleMass);
+	const int AttractorCount = clamp(NumAttractors, 0, 64);
+	float3 TotalAcceleration = float3(0.0f, 0.0f, 0.0f);
+
+	[loop]
+	for (int AttractorIndex = 0; AttractorIndex < AttractorCount; ++AttractorIndex)
+	{
+		const float4 Attractor = AttractorsBuffer[AttractorIndex];
+		const float AttractorMass = max(Attractor.w, 0.0f);
+		const float3 Separation = Attractor.xyz - ParticlePosition;
+		const float DistanceTerm = dot(Separation, Separation) + EpsilonSquared;
+		const float DistanceThreeHalves = DistanceTerm * sqrt(DistanceTerm);
+		const float DistanceCubed = DistanceTerm * DistanceTerm * DistanceTerm;
+		const float Attraction = AlphaEff * SanitizedParticleMass * AttractorMass / DistanceThreeHalves;
+		const float Repulsion = 4.0f * max(BetaTension, 0.0f) / DistanceCubed;
+
+		// Separation points toward the attractor: attraction is positive, tension repulsion negative.
+		TotalAcceleration += Separation * ((Attraction - Repulsion) * InverseParticleMass);
+	}
+
+	return TotalAcceleration;
+}
+
+// Uses the caller's prior acceleration for the first half-kick. If it is not initialized,
+// this computes it from the current position once, then completes a true KDK Verlet step.
+void EvaluateEpsilonField_GPU(
+	in float3 ParticlePosition,
+	in float ParticleMass,
+	in float3 CurrentVelocity,
+	in float3 PreviousAcceleration,
+	in bool HasPreviousAcceleration,
+	in float DeltaTime,
+	in float AlphaEff,
+	in float EpsilonFloor,
+	in float BetaTension,
+	in int NumAttractors,
+	in StructuredBuffer<float4> AttractorsBuffer,
+	out float3 OutPosition,
+	out float3 OutVelocity,
+	out float3 OutAcceleration)
+{
+	const float3 CurrentAcceleration = HasPreviousAcceleration
+		? PreviousAcceleration
+		: EvaluateEpsilonAcceleration_GPU(
+			ParticlePosition, ParticleMass, AlphaEff, EpsilonFloor, BetaTension, NumAttractors, AttractorsBuffer);
+	const float3 HalfStepVelocity = CurrentVelocity + CurrentAcceleration * (0.5f * DeltaTime);
+	OutPosition = ParticlePosition + HalfStepVelocity * DeltaTime;
+	OutAcceleration = EvaluateEpsilonAcceleration_GPU(
+		OutPosition, ParticleMass, AlphaEff, EpsilonFloor, BetaTension, NumAttractors, AttractorsBuffer);
+	OutVelocity = HalfStepVelocity + OutAcceleration * (0.5f * DeltaTime);
+}

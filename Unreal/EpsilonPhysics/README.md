@@ -9,6 +9,9 @@ This Unreal portion is a self-contained Unreal Engine 5 Runtime plugin with a do
 - `Source/EpsilonPhysics/Private/EpsilonPhysicsModule.cpp`
 - `Source/EpsilonPhysics/Public/EpsilonPhysicsSolver.h`
 - `Source/EpsilonPhysics/Private/EpsilonPhysicsSolver.cpp`
+- `Shaders/EpsilonFieldSolver.ush`
+- `Source/EpsilonPhysics/Public/EpsilonNiagaraBridge.h`
+- `Source/EpsilonPhysics/Private/EpsilonNiagaraBridge.cpp`
 
 ## Design notes
 
@@ -84,3 +87,17 @@ No AutomationTest source is included because this repository still lacks Unreal 
 4. assert all resulting vectors remain finite,
 5. call `InitializeSimulation(...)` and assert the analytical accelerations above,
 6. assert rejection of zero/negative mass, `NaN`, `beta < 0`, and `epsilon <= 0`.
+
+## Niagara GPU multi-attractor path
+
+The GPU path is designed for large particle clouds interacting with up to 64 dynamic major attractors (`N x M`, not self-gravity). It is not a true all-pairs N-body solver; 100,000 particles with four attractors is 400,000 field evaluations, while 100,000-body self-gravity would be impractical as an `N x N` loop.
+
+1. Copy this plugin to the project `Plugins/` folder and enable it. The module registers `/Plugin/EpsilonPhysics` as a shader include root.
+2. Set the Niagara emitter simulation target to **GPU Compute Sim** and use fixed bounds appropriate to the effect.
+3. Create User parameters named `AlphaEff` (float), `Epsilon` (float), `Beta` (float), and `AttractorArray` (Vector4 Array). Each array item packs position XYZ and non-negative mass W.
+4. In a Particle Update custom HLSL module, include `/Plugin/EpsilonPhysics/EpsilonFieldSolver.ush` and call `EvaluateEpsilonField_GPU`. Feed `Particles.Acceleration` as `PreviousAcceleration`, use a per-particle boolean initialized false at spawn for `HasPreviousAcceleration`, then set that boolean true after the first update.
+5. Write `OutPosition`, `OutVelocity`, and `OutAcceleration` to `Particles.Position`, `Particles.Velocity`, and `Particles.Acceleration`. Remove Niagara's default gravity and drag modules for this path.
+
+The helper performs a genuine kick-drift-kick Velocity-Verlet step: it uses the previous acceleration for the first half kick, evaluates the regularized field at the drifted position, then performs the final half kick. On the first update it derives the initial acceleration from the current position.
+
+Attach `UEpsilonNiagaraBridge` to an actor, assign the target `UNiagaraComponent`, and call `SetAttractors` when attractors change. The bridge validates input, rejects arrays over 64 entries, reports invalid input with `LogEpsilonPhysics`, and writes the User parameters every component tick.
