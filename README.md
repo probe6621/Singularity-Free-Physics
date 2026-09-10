@@ -29,6 +29,7 @@ Copy `Unreal/EpsilonPhysics` into your project's `Plugins/` directory, enable th
 - Pair evaluation is O(N^2). Use a Barnes-Hut/FMM approximation, GPU implementation, or spatial partitioning for very large body counts.
 - The optional Burst path uses SIMD-friendly native arrays and multithreaded per-particle reductions. Benchmark on the target hardware; exact 10,000-body all-pairs simulation requires roughly 100 million directed interactions per fixed step.
 - The Niagara GPU path supports up to 64 live attractors for large `N x M` particle effects; it is not an `N x N` self-gravity solver. See the plugin README for the required Niagara parameter and scratch-module setup.
+- The CPU Unity and Unreal solvers optionally augment the field with discrete radius-based impulses for elastic/inelastic contacts. This preserves linear momentum while intentionally allowing collision energy dissipation; see the engine-specific READMEs.
 
 ## Validation
 

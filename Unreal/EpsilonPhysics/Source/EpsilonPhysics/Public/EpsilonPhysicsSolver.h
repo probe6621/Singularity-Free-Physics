@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "EpsilonContactTypes.h"
 #include "Subsystems/EngineSubsystem.h"
 
 #include "EpsilonPhysicsSolver.generated.h"
@@ -24,6 +25,15 @@ struct EPSILONPHYSICS_API FEpsilonParticle
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Epsilon Physics", meta = (ClampMin = "0.0"))
 	double Mass = 1.0;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Epsilon Physics|Collision", meta = (ClampMin = "0.0"))
+	double Radius = 0.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Epsilon Physics|Collision", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	double Restitution = 0.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Epsilon Physics|Collision", meta = (ClampMin = "0.0"))
+	double Friction = 0.0;
+
 	bool HasFiniteKinematicState() const;
 	bool HasFiniteState() const;
 };
@@ -34,11 +44,17 @@ class EPSILONPHYSICS_API UEpsilonPhysicsSubsystem final : public UEngineSubsyste
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(BlueprintAssignable, Category = "Epsilon Physics|Collision")
+	FEpsilonContactResolvedSignature OnCollisionResolved;
+
 	UFUNCTION(BlueprintCallable, Category = "Epsilon Physics")
 	bool InitializeSimulation(const TArray<FEpsilonParticle>& InParticles, double InAlphaEff, double InBeta, double InSofteningLength);
 
 	UFUNCTION(BlueprintCallable, Category = "Epsilon Physics")
 	bool ConfigureSimulation(double InAlphaEff, double InBeta, double InSofteningLength);
+
+	UFUNCTION(BlueprintCallable, Category = "Epsilon Physics|Collision")
+	bool ConfigureCollision(bool bInCollisionEnabled, double InProjectionPercent = 1.0, double InProjectionSlop = 0.0);
 
 	UFUNCTION(BlueprintCallable, Category = "Epsilon Physics")
 	bool StepSimulation(UPARAM(ref) TArray<FEpsilonParticle>& InOutParticles, double DeltaSeconds);
@@ -54,6 +70,12 @@ public:
 		return bIsConfigured;
 	}
 
+	UFUNCTION(BlueprintPure, Category = "Epsilon Physics|Collision")
+	bool IsCollisionEnabled() const
+	{
+		return bCollisionEnabled;
+	}
+
 	UFUNCTION(BlueprintPure, Category = "Epsilon Physics")
 	TArray<FEpsilonParticle> GetParticles() const
 	{
@@ -63,6 +85,17 @@ public:
 	const TArray<FEpsilonParticle>& GetParticlesView() const
 	{
 		return Particles;
+	}
+
+	UFUNCTION(BlueprintPure, Category = "Epsilon Physics|Collision")
+	TArray<FEpsilonContactInfo> GetLastContacts() const
+	{
+		return LastContacts;
+	}
+
+	const TArray<FEpsilonContactInfo>& GetLastContactsView() const
+	{
+		return LastContacts;
 	}
 
 	UFUNCTION(BlueprintPure, Category = "Epsilon Physics")
@@ -92,6 +125,8 @@ public:
 private:
 	bool ValidateParameters(double InAlphaEff, double InBeta, double InSofteningLength);
 	bool ValidateConfiguredState() const;
+	bool ValidateCollisionSettings(bool bInCollisionEnabled, double InProjectionPercent, double InProjectionSlop);
+	bool ValidateCollisionState() const;
 	bool ValidateParticles(const TArray<FEpsilonParticle>& InParticles, bool bRequireFiniteAcceleration);
 	bool EvaluateAccelerations(
 		const TArray<FEpsilonParticle>& InParticles,
@@ -99,6 +134,7 @@ private:
 		double InBeta,
 		double InSofteningLengthSquared,
 		TArray<FVector3d>& OutAccelerations);
+	bool ResolveCollisions(TArray<FEpsilonParticle>& InOutParticles, TArray<FEpsilonContactInfo>& OutContacts);
 
 	bool RecordError(const FString& Message);
 	void ClearError();
@@ -121,6 +157,18 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Epsilon Physics")
 	bool bIsConfigured = false;
+
+	UPROPERTY(VisibleAnywhere, Category = "Epsilon Physics|Collision")
+	bool bCollisionEnabled = true;
+
+	UPROPERTY(VisibleAnywhere, Category = "Epsilon Physics|Collision")
+	double CollisionProjectionPercent = 1.0;
+
+	UPROPERTY(VisibleAnywhere, Category = "Epsilon Physics|Collision")
+	double CollisionProjectionSlop = 0.0;
+
+	UPROPERTY(VisibleAnywhere, Category = "Epsilon Physics|Collision")
+	TArray<FEpsilonContactInfo> LastContacts;
 
 	UPROPERTY(VisibleAnywhere, Category = "Epsilon Physics")
 	FString LastError;

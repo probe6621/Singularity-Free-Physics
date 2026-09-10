@@ -46,6 +46,9 @@ namespace SingularityFreePhysics
 
         public double SqrMagnitude() => x * x + y * y + z * z;
 
+        public static double Dot(Vector3d left, Vector3d right) =>
+            left.x * right.x + left.y * right.y + left.z * right.z;
+
         public bool IsFinite() =>
             !double.IsNaN(x) && !double.IsInfinity(x) &&
             !double.IsNaN(y) && !double.IsInfinity(y) &&
