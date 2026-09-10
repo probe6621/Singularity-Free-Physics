@@ -6,6 +6,8 @@ An open-source, dual-engine Community Core for regularized central-force simulat
 
 > Need Burst/DOTS high-capacity simulation, Unreal Niagara GPU acceleration, inelastic/friction contacts, callbacks, visualizers, or production demos? **Epsilon Physics Pro** is the commercial upgrade. Marketplace links will be published here.
 
+Internal publication drafts for the separately distributed Pro package are in [Marketplace/](/Users/paulroberts/.copilot/chats/28ab1c47-0475-453d-aeb7-dc9f83edef68/Singularity-Free-Physics/Marketplace).
+
 ## Contents
 
 - [`Unity/Packages/com.probe6621.singularity-free-physics`](Unity/Packages/com.probe6621.singularity-free-physics): Unity Package Manager package with the classic MonoBehaviour CPU solver and EditMode math tests.
