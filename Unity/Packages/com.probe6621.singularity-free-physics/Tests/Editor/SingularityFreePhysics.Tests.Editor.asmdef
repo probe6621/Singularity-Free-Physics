@@ -1,0 +1,13 @@
+{
+  "name": "SingularityFreePhysics.Tests.Editor",
+  "rootNamespace": "SingularityFreePhysics.Tests",
+  "references": [
+    "SingularityFreePhysics.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

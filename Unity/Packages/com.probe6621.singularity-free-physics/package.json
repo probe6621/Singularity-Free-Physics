@@ -1,0 +1,17 @@
+{
+  "name": "com.probe6621.singularity-free-physics",
+  "version": "0.1.0",
+  "displayName": "Singularity-Free Physics",
+  "description": "Double-precision, regularized N-body dynamics using Velocity-Verlet integration.",
+  "unity": "2021.3",
+  "keywords": [
+    "physics",
+    "n-body",
+    "gravity",
+    "double-precision",
+    "velocity-verlet"
+  ],
+  "author": {
+    "name": "probe6621"
+  }
+}
