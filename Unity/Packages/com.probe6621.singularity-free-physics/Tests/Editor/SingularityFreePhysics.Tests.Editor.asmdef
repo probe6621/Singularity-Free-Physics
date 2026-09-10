@@ -2,7 +2,10 @@
   "name": "SingularityFreePhysics.Tests.Editor",
   "rootNamespace": "SingularityFreePhysics.Tests",
   "references": [
-    "SingularityFreePhysics.Runtime"
+    "SingularityFreePhysics.Runtime",
+    "Unity.Collections",
+    "Unity.Jobs",
+    "Unity.Mathematics"
   ],
   "includePlatforms": [
     "Editor"

@@ -4,7 +4,7 @@ A dual-engine, double-precision N-body starter package for regularized central-f
 
 ## Contents
 
-- [`Unity/Packages/com.probe6621.singularity-free-physics`](Unity/Packages/com.probe6621.singularity-free-physics): Unity Package Manager package and EditMode math tests.
+- [`Unity/Packages/com.probe6621.singularity-free-physics`](Unity/Packages/com.probe6621.singularity-free-physics): Unity Package Manager package, including classic MonoBehaviour and Burst/Job System solvers plus EditMode math tests.
 - [`Unreal/EpsilonPhysics`](Unreal/EpsilonPhysics): Unreal Engine runtime module with Blueprint-callable solver.
 - [`Docs/Mathematical-Model.md`](Docs/Mathematical-Model.md): formulation, units, and integration notes.
 
@@ -27,6 +27,7 @@ Copy `Unreal/EpsilonPhysics` into your project's `Plugins/` directory, enable th
 - The solver intentionally refuses invalid state rather than allowing a NaN to contaminate the simulation.
 - Velocity-Verlet is symplectic for a time-independent conservative potential at a constant step. It bounds long-term energy error; it does **not** guarantee exact energy conservation or stability for every choice of step and parameters.
 - Pair evaluation is O(N^2). Use a Barnes-Hut/FMM approximation, GPU implementation, or spatial partitioning for very large body counts.
+- The optional Burst path uses SIMD-friendly native arrays and multithreaded per-particle reductions. Benchmark on the target hardware; exact 10,000-body all-pairs simulation requires roughly 100 million directed interactions per fixed step.
 
 ## Validation
 

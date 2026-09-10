@@ -1,4 +1,11 @@
 {
   "name": "SingularityFreePhysics.Runtime",
-  "rootNamespace": "SingularityFreePhysics"
+  "rootNamespace": "SingularityFreePhysics",
+  "references": [
+    "Unity.Burst",
+    "Unity.Collections",
+    "Unity.Jobs",
+    "Unity.Mathematics"
+  ],
+  "allowUnsafeCode": false
 }
