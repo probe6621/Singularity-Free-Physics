@@ -1,4 +1,4 @@
-# Mathematical model
+# Mathematical formulation
 
 For bodies `i` and `j`, let `r = r_i - r_j`, `d = r.r + epsilon^2`, and require `epsilon > 0`. The pair potential is
 
@@ -22,6 +22,18 @@ a_j = F_j / M_j
 ```
 
 Because `d >= epsilon^2`, every denominator is positive. At exactly coincident positions, `r = 0`, so the finite gradient and force are zero.
+
+## Force inversion radius
+
+For positive `alphaEff`, positive masses, and `beta > 0`, the radial force changes direction where the scalar in the potential gradient is zero:
+
+```text
+alphaEff * M_i * M_j / d^(3/2) = 4 * beta / d^3
+d = (4 * beta / (alphaEff * M_i * M_j))^(2/3)
+r_inv = sqrt(d - epsilon^2)
+```
+
+A real nonzero `r_inv` exists only when `d >= epsilon^2`. Otherwise the field has no positive-radius inversion point. This expression follows directly from the implemented potential; it should not be replaced with a squared ratio of `beta`, `epsilon`, and mass.
 
 ## Integration
 
